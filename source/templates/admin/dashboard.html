@@ -1,0 +1,63 @@
+{% extends 'admin/base.html' %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Количество пользователей
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ user_count }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Количество транзакций
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ transaction_count }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Сумма транзакций за сегодня
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ today_transaction_sum }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <h2 class="mt-4">Последние транзакции</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+                <th>Дата создания</th>
+                <th>ID пользователя</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in recent_transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.status }}</td>
+                <td>{{ transaction.created_at }}</td>
+                <td>{{ transaction.user_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

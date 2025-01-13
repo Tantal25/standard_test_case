@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Transactions API
+  version: 1.0.0
+  description: API для управления транзакциями и пользователями
+paths:
+  /create_user:
+    post:
+      summary: Создание нового пользователя
+      description: Эндпоинт для создания нового пользователя в базе данных.
+      tags:
+        - "Эндпоинты пользователей"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Имя пользователя
+                email:
+                  type: string
+                  format: email
+                  description: Электронная почта пользователя
+                balance:
+                  type: number
+                  format: float
+                  description: Баланс пользователя
+              required:
+                - username
+                - email
+                - balance
+      responses:
+        '200':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "Пользователь зарегистрирован"
+        '400':
+          description: Ошибка в запросе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Некорректные данные"
+        '409':
+          description: Конфликт, например, если пользователь с таким email уже существует
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Пользователь с таким email уже существует"
+
+  /create_transaction:
+    post:
+      summary: Создание транзакции
+      tags:
+        - "Эндпоинты транзакций"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: float
+                  description: Сумма транзакции
+                user_id:
+                  type: integer
+                  description: ID пользователя (необязательный)
+      responses:
+        '200':
+          description: Транзакция успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_status:
+                    type: string
+                    example: "Транзакция создана"
+        '400':
+          description: Ошибка в запросе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /cancel_transaction:
+    post:
+      summary: Отмена транзакции
+      tags:
+        - "Эндпоинты транзакций"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transaction_id:
+                  type: integer
+                  description: ID транзакции
+      responses:
+        '200':
+          description: Транзакция успешно отменена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction_status:
+                    type: string
+                    example: "Транзакция отменена"
+        '400':
+          description: Ошибка в запросе
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '404':
+          description: Транзакция не найдена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /check_transaction/{id}:
+    get:
+      summary: Проверка статуса транзакции
+      tags:
+        - "Эндпоинты транзакций"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID транзакции
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Статус транзакции успешно получен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  status:
+                    type: string
+        '404':
+          description: Транзакция не найдена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
