@@ -42,7 +42,8 @@
 
 Дополнительные опции:
 1. Создание дефолтного админа - `flask main_routes.admin_cli create-admin`
-2. Запуск Celery с периодической задчей
+2. Запуск Celery с периодической задчей (в разных терминалах)
+
   `celery -A tasks.celery worker --loglevel=info --pool=solo`
   
   `celery -A tasks.celery beat --loglevel=info`
