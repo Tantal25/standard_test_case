@@ -4,10 +4,10 @@ import enum
 class TransactionStatus(enum.Enum):
     """Enum со статусами транзакций."""
 
-    PENDING = 'pending'
-    CONFIRMED = 'confrimed'
-    CANCELED = 'canceled'
-    EXPIRED = 'expired'
+    PENDING = 'Pending'
+    CONFIRMED = 'Confrimed'
+    CANCELED = 'Canceled'
+    EXPIRED = 'Expired'
 
 
 class UserRole(enum.Enum):

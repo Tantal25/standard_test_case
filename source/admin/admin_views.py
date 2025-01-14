@@ -7,7 +7,7 @@ from sqlalchemy import func
 from source.admin.admin_services import (day_transaction_sum,
                                          recent_transactions,
                                          transaction_count, user_count)
-from source.forms import TransactionForm
+from source.forms import AdminTransactionForm, UserTransactionForm
 from source.models import Transaction, User, UserRole, db
 
 
@@ -17,7 +17,6 @@ class CustomAdminIndexView(AdminIndexView):
     @expose('/')
     @login_required
     def index(self):
-
         # Доступ к дашборду только у админа
         if current_user.role != UserRole.ADMIN:
             return redirect(url_for('user.index_view'))
@@ -39,21 +38,29 @@ class CustomAdminIndexView(AdminIndexView):
 class AdminUserView(ModelView):
     """Вью страницы пользователей в админ-панели."""
 
-    def get_query(self):
-        if current_user.role != UserRole.ADMIN:
-            return self.session.query(User).filter(User.id == current_user.id)
-        return super().get_query()
+    column_list = [
+        'id', 'username', 'balance', 'comission_rate',
+        'url_webhook', 'role', 'usdt_wallet_number'
+        ]
+    column_labels = {
+        'id': 'ID',
+        'username': 'Имя пользователя',
+        'balance': 'Баланс',
+        'comission_rate': 'Ставка комиссии',
+        'url_webhook': 'URL Webhook',
+        'usdt_wallet_number': 'USDT кошелек'
+    }
 
-    def get_count_query(self):
+    def _handle_view(self, name, **kwargs):
         if current_user.role != UserRole.ADMIN:
-            return self.session.query(1)
-        return super().get_count_query()
+            return redirect(url_for('transaction.index_view'))
+        return super()._handle_view(name, **kwargs)
 
 
 class AdminTransactionView(ModelView):
     """Вью для страницы транзакций в админ панели."""
 
-    form = TransactionForm
+    form = AdminTransactionForm
     column_list = [
         'id', 'amount', 'comission',
         'status', 'created_at', 'user_id'
@@ -85,12 +92,13 @@ class AdminTransactionView(ModelView):
     def on_model_change(self, form, model, is_created):
         if current_user.role != UserRole.ADMIN:
             model.user_id = current_user.id
+            model.comission = model.amount * current_user.comission_rate
         return super().on_model_change(form, model, is_created)
 
     def create_form(self, obj=None):
         form = super().create_form()
         if current_user.role != UserRole.ADMIN:
-            del form.user_id
+            form = UserTransactionForm()
         return form
 
 

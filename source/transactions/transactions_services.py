@@ -21,7 +21,7 @@ def create_transaction_in_db(amount, comission, user_id):
 def change_transaction_status_on_canceled(transaction):
     """Функция меняющая статус транзакции в БД на canceled."""
 
-    if transaction.status.value == 'pending':
+    if transaction.status.value == 'Pending':
         transaction.status = TransactionStatus.CANCELED
         db.session.commit()
         return jsonify({'transaction_status': 'Транзакция отменена'})

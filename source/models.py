@@ -19,7 +19,6 @@ db = SQLAlchemy(model_class=Base)
 
 class User(Base, UserMixin):
     """Расширенная модель пользователя."""
-
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -38,6 +37,7 @@ class User(Base, UserMixin):
         default=DEFAULT_URL_WEBHOOK
     )
     role: Mapped[str] = mapped_column(Enum(UserRole), default=UserRole.USER)
+    usdt_wallet_number: Mapped[str] = mapped_column(String, nullable=True)
 
     def get_id(self):
         return str(self.id)
@@ -45,7 +45,6 @@ class User(Base, UserMixin):
 
 class Transaction(Base):
     """Модель стандартной транзакции."""
-
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True)
