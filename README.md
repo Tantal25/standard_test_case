@@ -32,3 +32,17 @@
 Также реализован HTML шаблон для логина пользователя по адресу - `http://127.0.0.1:5000/login`
 
 Эндпоинт для логаута - `http://127.0.0.1:5000/logout`
+
+
+## Для запуска проекта
+1. Клонировать репозиторий - `git@github.com:Tantal25/standard_test_case.git`
+2. Активировать вирутальное окружение
+3. Установить зависимости - `pip install -r requirements.txt`
+4. Зайти в корневую директорию, где расположен файл app.py и запустить проект - `flask run`
+
+Дополнительные опции:
+1. Создание дефолтного админа - `flask main_routes.admin_cli create-admin`
+2. Запуск Celery с периодической задчей
+  `celery -A tasks.celery worker --loglevel=info --pool=solo`
+  
+  `celery -A tasks.celery beat --loglevel=info`
