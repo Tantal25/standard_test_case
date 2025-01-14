@@ -1,10 +1,8 @@
-from flask import (
-    request, jsonify, Blueprint, redirect,
-    url_for, flash, render_template)
-from flask_login import login_user, login_required, logout_user
+from flask import (Blueprint, jsonify, redirect, render_template, request,
+                   url_for)
+from flask_login import login_required, login_user, logout_user
 
-from source.models import User, db
-
+from source.users.users_services import create_user_in_db, find_user_in_db
 
 users_bp = Blueprint('users', __name__)
 
@@ -12,31 +10,23 @@ users_bp = Blueprint('users', __name__)
 @users_bp.route('/create_user', methods=['POST'])
 def create_user():
     """Вью для эндпоинта создания пользователя в БД."""
+    create_user_in_db(request.get_json())
 
-    data = request.get_json()
-    db.session.add(User(
-        username=data.get('username'),
-        email=data.get('email'),
-        balance=data.get('balance')
-    ))
-    db.session.commit()
     return jsonify({'status': 'Пользователь зарегистрирован'})
 
 
 @users_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
 
-        user = db.session.query(User).filter_by(
-            username=username, email=email).first()
+        user = find_user_in_db(request.form['username'], request.form['email'])
+
         if user:
             login_user(user)
             return redirect(url_for('admin.index'))
         else:
-            flash('Неверный логин или пароль')
             return redirect(url_for('users.login'))
+
     return render_template('users/login.html')
 
 

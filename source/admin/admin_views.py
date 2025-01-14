@@ -1,53 +1,43 @@
-from datetime import datetime
-
-from flask import Blueprint, redirect, url_for
+from flask import redirect, url_for
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 from sqlalchemy import func
 
-from source.models import User, Transaction, db, UserRole
+from source.admin.admin_services import (day_transaction_sum,
+                                         recent_transactions,
+                                         transaction_count, user_count)
 from source.forms import TransactionForm
-
-
-admin_cli_bp = Blueprint('admin_cli', __name__)
-
-TRANSACTIONS_PER_PAGE = 5
+from source.models import Transaction, User, UserRole, db
 
 
 class CustomAdminIndexView(AdminIndexView):
-    """Вью главной страницы админ-панели."""
+    """Вью главной страницы (дашборда) админ-панели."""
 
     @expose('/')
     @login_required
     def index(self):
 
+        # Доступ к дашборду только у админа
         if current_user.role != UserRole.ADMIN:
             return redirect(url_for('user.index_view'))
 
-        # Подсчитываем количество пользователей и транзакций
-        user_count = db.session.query(User).count()
-        transaction_count = db.session.query(Transaction).count()
+        return self.render(
+            'admin/dashboard.html',
+            # Подсчитываем количество пользователей и транзакций в БД
+            user_count=user_count(),
+            transaction_count=transaction_count(),
 
-        # Подсчитываем сумму транзакций за сегодняшний день
-        today_transaction_sum = db.session.query(
-            func.sum(Transaction.amount)).filter(
-                func.date(Transaction.created_at) == datetime.now(
-                    ).date()).scalar() or 0
+            # Подсчитываем сумму всех транзакций за сегодня
+            today_transaction_sum=day_transaction_sum(),
 
-        # Выводим установленное количество транзакций
-        recent_transactions = db.session.query(
-            Transaction).order_by(Transaction.created_at.desc()).limit(
-                TRANSACTIONS_PER_PAGE).all()
-
-        return self.render('admin/dashboard.html',
-                           user_count=user_count,
-                           transaction_count=transaction_count,
-                           today_transaction_sum=today_transaction_sum,
-                           recent_transactions=recent_transactions)
+            # Выводим последние транзакции
+            recent_transactions=recent_transactions()
+        )
 
 
 class AdminUserView(ModelView):
+    """Вью страницы пользователей в админ-панели."""
 
     def get_query(self):
         if current_user.role != UserRole.ADMIN:
@@ -62,6 +52,7 @@ class AdminUserView(ModelView):
 
 class AdminTransactionView(ModelView):
     """Вью для страницы транзакций в админ панели."""
+
     form = TransactionForm
     column_list = [
         'id', 'amount', 'comission',
@@ -104,37 +95,21 @@ class AdminTransactionView(ModelView):
 
 
 def init_admin(app):
-    """Метод для инициализации всей админ панели."""
+    """Метод для инициализации всей админ-панели."""
 
     admin = Admin(
         app,
         name='Transactions API',
         template_mode='bootstrap4',
         index_view=CustomAdminIndexView()
-        )
+    )
     admin.add_view(AdminUserView(
             User,
             db.session,
             name='Пользователи')
-            )
+    )
     admin.add_view(AdminTransactionView(
             Transaction,
             db.session,
             name='Транзакции')
-            )
-
-
-@admin_cli_bp.cli.command('create-admin')
-def create_admin():
-    """CLI команда для создания дефолтного админа в БД."""
-
-    admin = User(
-        username='admin',
-        email='admin@test.ru',
-        balance=100000.0,
-        comission_rate=0.0,
-        url_webhook='admin_transactions',
-        role=UserRole.ADMIN
-        )
-    db.session.add(admin)
-    db.session.commit()
+    )
